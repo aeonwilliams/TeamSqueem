@@ -4,15 +4,16 @@ from matplotlib import pyplot as plt
 
 class FCM:
     '''Class for Fuzzy C-Means. Currently best suited with Pandas DataFrames for data.'''
-    def __init__(self,data,c,m,maxiter=100,genCentroids=False,distFunc=False):
+    def __init__(self,data,c,dim,m=2,maxiter=100,genCentroids=False,distFunc=False):
         '''data is data you want to cluster, c is number of clusters, m is dimensionality of data'''
         self._data = data       # Data to cluster on
         self._iter = maxiter    # Max iterations
         self._c = c             # Number of clusters
         self._n = len(data)     # Number of items in data set
-        self._m = m             # Dimensionality of the data set
+        self._dim = dim         # Dimensionality of the data set
+        self._m = m             # Fuzzifier
         self._A = np.zeros((self._n,self._c))
-        
+
         # Sample centroids from data
         if isinstance(genCentroids,bool):
             if genCentroids == True and type(self._data) == pd.DataFrame:
@@ -28,7 +29,7 @@ class FCM:
             self._distFunc = distFunc
         else:
             self._distFunc = FCM.__SimpleEuclidean
-        
+
     # Run FCM on the data
     def fit(self):
         '''Runs the algorithm on the data provided during construction. Uses the distance function to calculate distance. Returns the centroids'''
@@ -39,29 +40,32 @@ class FCM:
                 for k in range(self._n):
                     for i in range(self._c):
                         #calculate distance
-                        DTC[k,i] = self._distFunc(self._data.iloc[k],self._centroids.iloc[i],self._m)
+                        DTC[k,i] = self._distFunc(self._data.iloc[k],self._centroids.iloc[i],self._dim) #dimensionality m
                 #Update A with membership
                 for i in range(self._c):
                     for k in range(self._n):
                         sum = 0
                         for j in range(self._c):
-                            sum += (DTC[k,i]/DTC[k,j]) ** (2/(self._m-1))
+                            if self._m == 2:
+                                sum += (DTC[k,i]/DTC[k,j]) ** 2 #parameter m
+                            else:
+                                sum += (DTC[k,i]/DTC[k,j]) ** (2/(self._m-1)) #parameter m
                         self._A[k,i] = 1/sum
                 self._A[np.isnan(self._A)] = 0
                 #Update
                 for i in range(self._c):
-                    sumnum = np.zeros(self._m)
+                    sumnum = np.zeros(self._dim) #dimensionality m
                     sumden = 0
                     for k in range(self._n):
-                        sumnum += (self._A[k,i] ** self._m) * self._data.iloc[k].values
-                        sumden += self._A[k,i] ** self._m
+                        sumnum += (self._A[k,i] ** self._m) * self._data.iloc[k].values #parameter m
+                        sumden += self._A[k,i] ** self._m #parameter m
                     self._centroids.iloc[i] = sumnum/sumden
         return self._centroids
 
     # Plotting the data and centroids
     def plot(self):
         '''Rudimentally plots the data using PyPlot for 2d.'''
-        if self._m == 2:
+        if self._dim == 2:
             fig = plt.figure(figsize=(8,8))
             columns = self._data.columns
             plt.scatter(self._data[columns[0]],self._data[columns[1]])
