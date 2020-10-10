@@ -16,11 +16,14 @@ class FCM:
 
         # Sample centroids from data
         if isinstance(genCentroids,bool):
-            if genCentroids == True and type(self._data) == pd.DataFrame:
-                self._centroids = data.sample(self._c).copy()
-                self._centroids.reset_index(drop=True,inplace=True)
-            elif genCentroids == False:
-                self._centroids = pd.DataFrame([np.random.uniform(0,1,self._m) for x in range(self._c)])
+            if self._c <= len(self._data):
+                if genCentroids == True and type(self._data) == pd.DataFrame:
+                    self._centroids = data.sample(self._c).copy()
+                    self._centroids.reset_index(drop=True,inplace=True)
+                elif genCentroids == False:
+                    self._centroids = pd.DataFrame([np.random.uniform(0,1,self._dim) for x in range(self._c)],columns=['Long','Lat'])
+            else:
+                self._centroids = pd.DataFrame([np.random.uniform(0,1,self._dim) for x in range(self._c)],columns=['Long','Lat'])
         elif isinstance(genCentroids,list):
             self._centroids = pd.DataFrame(genCentroids)
 
@@ -73,6 +76,15 @@ class FCM:
             plt.scatter(self._centroids[columns[0]],self._centroids[columns[1]])
             plt.show()
             plt.close(fig)
+
+    # De-Fuzzify the data and assign each point to a centroid
+    def classify(self,how='max',threshold='.6'):
+        '''Classify each point in the data set with it's membership to the centroids'''
+        ownership = [0 for x in range(self._n)]
+        for x in range(self._n):
+            ownership[x] = list(self._A[x]).index(max(self._A[x]))
+        return ownership
+
     # Simple distance formula
     def __SimpleEuclidean(a,b,dim):
         '''Calculates distance with Euclidean Distance. Treats the points a and b as an dim-dimensional array.'''
