@@ -26,6 +26,8 @@ class FCM:
                 self._centroids = pd.DataFrame([np.random.uniform(0,1,self._dim) for x in range(self._c)],columns=['Long','Lat'])
         elif isinstance(genCentroids,list):
             self._centroids = pd.DataFrame(genCentroids)
+        elif isinstance(genCentroids,pd.DataFrame):
+            self._centroids = genCentroids
 
         # Function for calculating distance between elements
         if callable(distFunc):
@@ -92,3 +94,7 @@ class FCM:
         for i in range(dim):
             distance += (a[i] - b[i]) ** 2
         return np.sqrt(distance)
+
+    def __l2Distance(a,b):
+        '''Calculates l2 distance between a and b'''
+        return np.linalg.norm(a-b)
