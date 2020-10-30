@@ -27,10 +27,12 @@ def MakeGif(source_dir='./', out_dir='./', gif_name='test', duration=100, file_t
         example call:
             MakeGif('./data', './', 'test', 100, 'jpg')'''
     images = []
+    
+    paths = sorted(Path(source_dir).iterdir(), key=os.path.getmtime)
+    
+    for file in paths:
+        if str(file).endswith('.' + file_type):
+            images.append(Image.open(file))
 
-    for filename in os.listdir(source_dir):
-        if filename.endswith('.' + file_type):
-            images.append(Image.open(source_dir + '/' + filename))
     if(len(images) > 0):
         images[0].save(out_dir + '/' + gif_name + '.gif', save_all=True, append_images=images[1:], optimize=False, duration=100, loop=0)
-
