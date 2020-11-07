@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-class FCM:
+class FCM(object):
     '''Class for Fuzzy C-Means. Currently best suited with Pandas DataFrames for data.'''
     def __init__(self,data,c,dim,m=2,maxiter=100,genCentroids=False,distFunc=False):
         '''data is data you want to cluster, c is number of clusters, m is dimensionality of data'''
@@ -21,9 +21,9 @@ class FCM:
                     self._centroids = data.sample(self._c).copy()
                     self._centroids.reset_index(drop=True,inplace=True)
                 elif genCentroids == False:
-                    self._centroids = pd.DataFrame([np.random.uniform(0,1,self._dim) for x in range(self._c)],columns=['Long','Lat'])
+                    self._centroids = pd.DataFrame([np.random.uniform(0,1,self._dim) for x in range(self._c)],columns=self._data.columns)
             else:
-                self._centroids = pd.DataFrame([np.random.uniform(0,1,self._dim) for x in range(self._c)],columns=['Long','Lat'])
+                self._centroids = pd.DataFrame([np.random.uniform(0,1,self._dim) for x in range(self._c)],columns=self._data.columns)
         elif isinstance(genCentroids,list):
             self._centroids = pd.DataFrame(genCentroids)
         elif isinstance(genCentroids,pd.DataFrame):
@@ -33,7 +33,7 @@ class FCM:
         if callable(distFunc):
             self._distFunc = distFunc
         else:
-            self._distFunc = FCM.__SimpleEuclidean
+            self._distFunc = FCM.__l2Distance
 
     # Run FCM on the data
     def fit(self):
@@ -95,6 +95,6 @@ class FCM:
             distance += (a[i] - b[i]) ** 2
         return np.sqrt(distance)
 
-    def __l2Distance(a,b):
+    def __l2Distance(a,b,dim=True):
         '''Calculates l2 distance between a and b'''
         return np.linalg.norm(a-b)
