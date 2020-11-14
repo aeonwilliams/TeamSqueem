@@ -1,0 +1,5 @@
+Pillow
+numpy
+pandas
+pathlib
+matplotlib
